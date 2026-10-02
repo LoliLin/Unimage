@@ -9,6 +9,7 @@ from unimage.compiler.optimizer import PhysicalOptimizer
 from unimage.runtime.saga_compensator import SagaExecutionEngine
 from unimage.registry.capability_matrix import CapabilityRegistry, global_registry
 from unimage.adapters.base import BaseModelAdapter
+from unimage.adapters.dispatcher import AdapterDispatcher
 
 class UnimageClient:
     """
@@ -23,7 +24,8 @@ class UnimageClient:
         self.registry = registry or global_registry
         self.planner = LogicalPlanner()
         self.optimizer = PhysicalOptimizer(self.registry)
-        self.engine = SagaExecutionEngine(default_adapter=adapter)
+        self.dispatcher = adapter or AdapterDispatcher()
+        self.engine = SagaExecutionEngine(default_adapter=self.dispatcher)
 
     async def dispatch(self, request: DeclarativeMediaRequest) -> ExecutionResult:
         """

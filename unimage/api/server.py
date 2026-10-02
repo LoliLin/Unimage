@@ -6,12 +6,16 @@ from fastapi import FastAPI, HTTPException
 from unimage.protocol.schema import DeclarativeMediaRequest, ExecutionResult
 from unimage.registry.capability_matrix import global_registry
 from unimage.client import UnimageClient
+from unimage.api.openai_compat import router as openai_compat_router
 
 app = FastAPI(
     title="Unimage: Generative Media Runtime Layer",
     version="0.1.0",
     description="Capability-based Media API Gateway & Execution Runtime"
 )
+
+# Mount OpenAI Compatibility Polyfill
+app.include_router(openai_compat_router)
 
 client = UnimageClient()
 

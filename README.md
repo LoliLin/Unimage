@@ -133,6 +133,12 @@ uvicorn unimage.api.server:app --host 0.0.0.0 --port 8000
 
 ---
 
+## 作者与致谢 (Author & Credits)
+
+* **Author**: Lolilin (<teawhat2000@gmail.com>)
+
+---
+
 ## 许可协议
 
 Apache License 2.0. 详见 [LICENSE](LICENSE)。

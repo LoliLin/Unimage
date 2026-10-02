@@ -2,6 +2,7 @@
 ## Technical Architecture & Research Specification Whitepaper
 
 > **Version**: 0.1.0-alpha  
+> **Author**: Lolilin <teawhat2000@gmail.com>  
 > **Status**: Conceptual Blueprint & Core Engine Specification  
 > **Target Audience**: AI Infrastructure Architects, Multimodal Agent Developers, Systems Engineers
 

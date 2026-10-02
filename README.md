@@ -1,49 +1,86 @@
-# Unimage: Capability-Based Generative Media Runtime Layer (CMRL)
+<div align="center">
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
-[![Status: Alpha](https://img.shields.io/badge/status-active--alpha-orange.svg)]()
+# 🌌 Unimage
 
-> **"SQL 编译器对于数据库的意义，等同于 Media Runtime 对于生成式模型的意义。"**  
-> Unimage 是为 AI Agent 与下一代多模态应用打造的**声明式媒体运行时基础设施**。它打破了传统“图片版 One-API / API 聚合”的浅层参数映射死路，将生成任务抽象为**能力拓扑、状态编译与分布式 Saga 质量补偿**。
+### The Capability-Based Generative Media Runtime Layer (CMRL) for AI Agents
+**Declarative Intent Compilation • Saga Quality Compensation • Distributed Latent Mesh**
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063.svg?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
+[![Status: Alpha](https://img.shields.io/badge/Status-Active%20Alpha-orange.svg?style=flat-square)]()
+
+<p align="center">
+  <a href="#-why-unimage">Why Unimage</a> •
+  <a href="#-core-architecture">Architecture</a> •
+  <a href="#-dual-direction-compatibility">Compatibility</a> •
+  <a href="#-quickstart">Quickstart</a> •
+  <a href="#-comparisons">Comparison</a> •
+  <a href="#-whitepaper">Whitepaper</a>
+</p>
 
 ---
 
-## 为什么生图/生视频领域不需要“另一个 One-API”？
+</div>
 
-| 维度 | 传统 API 聚合器 (OpenRouter / One-API) | Unimage (Media Runtime Layer) |
-| :--- | :--- | :--- |
-| **请求范式** | **Model-Centric**：调用方必须指定具体的模型（如 `dall-e-3` / `flux-schnell`）与私有参数 | **Intent-Centric**：声明语义意图、先验锚点（Anchors）与 SLA 约束，系统自动编译 |
-| **工作流** | **单次前向调用**：只支持简单的 `Text -> Image` | **复合图执行（DAG）**：基模生成 + 局部 Mask + 特征注入 + 局部重绘 + 超分 |
-| **一致性保障** | 无。多轮编辑角色面部漂移、风格割裂 | **原生长程一致性**：支持 PuLID/IP-Adapter/ConsisID 锚点注入与多轮会话潜向量缓存 |
-| **失败语义** | HTTP 错误重试（重新全图生成，消耗 100% 算力且丢失已满意的背景） | **Saga 事务性局部补偿**：面部或文字不达标时，只触发局部打补丁（Targeted Inpainting Patch） |
-| **状态维系** | 纯无状态（Stateless），每次重新传输 Base64/PNG 造成严重信息衰减 | **分布式 Latent & Context Mesh**：会话期内保留显存潜向量与 Attention Maps |
+> **"What the SQL Query Optimizer is to databases, the Media Runtime Layer is to generative diffusion models."**  
+> 
+> Unimage is an open-source, intent-driven **Media Execution Subsystem & Runtime**. It discards the flawed notion of "another simple image API aggregator" and elevates generative media dispatch to **declarative intent compilation, SLA-driven Pareto routing, and Saga transactional self-healing**.
 
 ---
 
-## 核心架构与工作流程
+## 💡 The 1D Token Illusion vs. The Multimodal Reality
+
+In text LLMs, everything is a homogeneous 1D discrete sequence:
+$$\text{input: } [\text{messages}] \longrightarrow \text{output: } [\text{tokens}]$$
+Because semantics and parameters are symmetric across providers, projects like **OpenRouter** and **One-API** succeeded by providing shallow parameter mapping.
+
+**Generative media operates under completely different physical laws:**
+
+```
+   Traditional API Aggregators (Dead End)                   Unimage Media Runtime (Next-Gen)
+┌──────────────────────────────────────────────┐       ┌──────────────────────────────────────────────┐
+│  Client selects: "model": "flux-schnell"     │       │  Client declares: Goal + Anchors + SLA       │
+│  Client manually guesses CFG / Steps / Seed  │       │  - Action: "character_consistent_edit"      │
+│  Client writes messy glue for inpainting     │  vs   │  - Anchors: [FaceID, Depth, Typography]      │
+│  Failure = 100% full-image redraw ($$$)      │       │  - SLA: FaceSimilarity >= 0.85, Latency < 6s │
+│  PNG round-trip destroys latent features     │       │  Compiler builds Dynamic DAG + Auto-Repairs  │
+└──────────────────────────────────────────────┘       └──────────────────────────────────────────────┘
+```
+
+1. **Composite Pipelines (DAGs)**: Production media is never a single forward pass. It requires `Prompt Expansion -> Base Synthesis -> Face Detailer Mask -> IP-Adapter/PuLID Embedding -> Latent Denoise Patch -> Super-Resolution`.
+2. **Latent State Destruction**: Passing decoded PNGs between microservices causes severe high-frequency loss. Unimage maintains a **Distributed Latent & Attention Mesh**.
+3. **Stochastic Failures & Non-Deterministic Recovery**: Media models fail locally (bad hands, drifted face identity). Unimage applies **Saga-based compensating transactions**: if the facial quality gate fails, it executes a targeted inpainting patch without throwing away the rest of the canvas.
+
+---
+
+## 🏛️ Core Architecture
 
 ```mermaid
 flowchart TD
-    Agent[AI Agent / Multimodal App] -->|Declarative Intent JSON| Gateway[Unimage CDMP Gateway]
-    
-    subgraph ControlPlane [1. 控制面：编译与调度]
+    Client[AI Agent / Multimodal App] -->|Declarative Intent JSON| Gateway[CDMP Ingress Gateway]
+    OpenAIClient[LangChain / AutoGen / OpenAI SDK] -->|POST /v1/images/*| Polyfill[OpenAI Ingress Polyfill]
+    Polyfill --> Gateway
+
+    subgraph ControlPlane [1. Control Plane: Compilation & Routing]
         Gateway --> IntentParser[Intent & Semantic Parser]
         IntentParser --> LogicalPlanner[Logical Plan Compiler]
-        LogicalPlanner --> CapMatrix[(Capability Registry & Traits)]
+        LogicalPlanner --> CapMatrix[(Capability Registry & Trait Matrix)]
         LogicalPlanner --> PhysicalOptimizer[Cost / Latency / SLA Pareto Optimizer]
     end
 
-    subgraph ExecutionPlane [2. 执行面：分布式 Saga 运行时]
+    subgraph ExecutionPlane [2. Execution Plane: Distributed Saga Runtime]
         PhysicalOptimizer --> SagaEngine[Saga Execution Engine]
         SagaEngine --> AdapterFal[Adapter: fal.ai / Flux-PuLID]
-        SagaEngine --> AdapterComfy[Adapter: ComfyUI Local Workers]
-        SagaEngine --> AdapterOpenAI[Adapter: OpenAI / Imagen]
+        SagaEngine --> AdapterComfy[Adapter: ComfyUI Local Cluster]
+        SagaEngine --> AdapterOpenAI[Adapter: OpenAI DALL-E 3]
+        SagaEngine --> AdapterGemini[Adapter: Google Imagen 3]
         
         SagaEngine <--> StateStore[(Distributed Latent & State Cache)]
     end
 
-    subgraph CompensationPlane [3. 反馈面：质量闭环门禁]
+    subgraph CompensationPlane [3. Feedback Plane: Transactional Self-Healing]
         AdapterFal & AdapterComfy --> QualityGate[Quality & Similarity Evaluator]
         QualityGate -- "Pass SLA (>= 0.85)" --> Deliver[Deliver Final Asset]
         QualityGate -- "Breach SLA (< 0.85)" --> SagaPatch[Targeted Face Inpaint Patch]
@@ -53,38 +90,86 @@ flowchart TD
 
 ---
 
-## 快速上手 (Quickstart)
+## 🔄 Dual-Direction Compatibility
 
-### 1. 运行端到端声明式 Demo
+Unimage acts as a **Universal Bridge** between legacy ecosystems and bleeding-edge heterogeneous GPU runtimes:
 
-Unimage 内置了高保真仿真环境，可无门槛体验“声明式意图 -> DAG 编译 -> 触发质量自愈修补”全流程：
+### 1. Ingress Polyfill (Upward Compatibility)
+* Drop-in replacement for OpenAI Image API (`POST /v1/images/generations` and `POST /v1/images/edits`).
+* Works out-of-the-box with **LangChain**, **LlamaIndex**, **AutoGen**, **NextChat**, **LobeChat**, and the official **OpenAI Python/Node SDK**.
+* Existing calls are automatically upgraded into compiled DAGs with Saga compensation!
+
+### 2. Egress Adapters (Downward Heterogeneous Runtimes)
+* **fal.ai**: Async polling queue for ultra-fast serverless inference (Flux.1 Schnell/Dev).
+* **OpenAI DALL-E 3**: Official HTTP client integration with automated error recovery.
+* **Google Imagen 3**: REST prediction adapter for high-fidelity prompt adherence.
+* **ComfyUI Workers**: REST prompt submission and history queue poller for self-hosted GPU nodes (PuLID, ControlNet, 4x-UltraSharp).
+
+---
+
+## ⚡ Quickstart
+
+### Installation
 
 ```bash
-# 执行示例管道
+git clone git@github.com:LoliLin/Unimage.git
+cd Unimage
+pip install -e .
+```
+
+### 1. Run the End-to-End Self-Healing Demo
+
+Experience declarative intent compilation and dynamic Saga face-repair in your terminal:
+
+```bash
 python examples/run_declarative_pipeline.py
 ```
 
-### 2. Python SDK 核心调用代码
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ UNIMAGE: Capability-based Generative Media Runtime Layer (CMRL)             │
+│ Demonstrating Declarative Intent, Dynamic DAG Compilation, and Saga Repair  │
+└─────────────────────────────────────────────────────────────────────────────┘
+1. Submitted Declarative Request:
+  * Task: character_consistent_edit
+  * Prompt: "A cyberpunk detective in rain-slicked Tokyo, holding a data pad"
+  * Target SLA: Face Similarity >= 0.85 | Dimensions: 1280x720
+
+2. Compiling Declarative Intent into Physical Execution DAG...
+
+                           Saga Execution DAG Trace                            
+┌────────────────────────────────────┬──────┬──────┬──────┬──────┬─────┬──────┐
+│ Step ID                            │ Oper │ Prov │ Stat │ Dur  │ Cos │ Note │
+├────────────────────────────────────┼──────┼──────┼──────┼──────┼─────┼──────┤
+│ step_01_base_conditioned_synthesis │ base │ fal  │ COMP │ 4500 │ $0… │ Flux │
+│ step_02_quality_eval_gate          │ eval │ unim │ COMP │ 0 ms │ $0… │ 0.79 │
+│ step_03_saga_face_repair           │ saga │ comf │ COMP │ 1800 │ $0… │ 0.95 │
+│ step_04_super_resolution           │ post │ comf │ COMP │ 1100 │ $0… │ 4x   │
+└────────────────────────────────────┴──────┴──────┴──────┴──────┴─────┴──────┘
+[SLA Gate Check: PASSED] Final Deliverable: https://cdn.unimage.dev/renders/art_4k.png
+```
+
+### 2. Python SDK Usage (For AI Agents)
 
 ```python
 import asyncio
 from unimage import UnimageClient, DeclarativeMediaRequest, MediaIntent, MediaAnchor, MediaRequirements
 from unimage.protocol import TaskType, AnchorType, FidelityLevel, Dimensions, QualityThresholds
 
-async def run():
+async def main():
     client = UnimageClient()
 
-    # 用户或 Agent 仅声明高层意图，无需关心具体调度哪个模型
+    # The Agent declares WHAT it needs, not WHICH model to run
     request = DeclarativeMediaRequest(
         intent=MediaIntent(
             task=TaskType.CHARACTER_CONSISTENT_EDIT,
             action="scene_transfer",
-            prompt="将该角色置于霓虹雨夜街道，手持全息数据板，光影投射在面部"
+            prompt="Place this character in a neon-lit cyberpunk alleyway at night"
         ),
         anchors=[
             MediaAnchor(
                 type=AnchorType.IDENTITY,
-                source_uri="s3://assets/character_master.png",
+                source_uri="s3://assets/character_master_face.png",
                 target_region="face",
                 fidelity=FidelityLevel.STRICT
             )
@@ -92,53 +177,82 @@ async def run():
         requirements=MediaRequirements(
             dimensions=Dimensions(width=1280, height=720),
             max_cost_cents=8.0,
-            max_latency_ms=7000,
             quality_thresholds=QualityThresholds(face_similarity=0.85)
         )
     )
 
     result = await client.dispatch(request)
-    print(f"交付资产: {result.final_asset_uri}")
-    print(f"SLA 检验: {result.sla_passed}, 自动修补轮次: {result.repaired_passes}")
+    print(f"Asset Delivered: {result.final_asset_uri}")
+    print(f"SLA Passed: {result.sla_passed} (Saga Auto-Repair Passes: {result.repaired_passes})")
 
-asyncio.run(run())
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-### 3. 启动 API Gateway 服务
+### 3. Launching the API Gateway (OpenAI-Compatible)
 
 ```bash
 uvicorn unimage.api.server:app --host 0.0.0.0 --port 8000
 ```
-访问 `http://localhost:8000/docs` 即可查看完整的 OpenAPI 交互式文档。
+
+Now talk to it using standard cURL or the official OpenAI Python SDK:
+
+```bash
+curl http://localhost:8000/v1/images/generations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Cyberpunk street with holographic banners",
+    "size": "1024x1024",
+    "quality": "standard"
+  }'
+```
 
 ---
 
-## 理论参考与学术前沿
+## 📊 Ecosystem Comparison
 
-* **Workflow Generation with LLMs**: *ComfyGPT: A Self-Optimizing Multi-Agent System for Comprehensive ComfyUI Workflow Generation* (arXiv:2503.17671)
-* **Model Dynamic Routing**: *RouteLLM: Learning to Route LLMs with Preference Data* (LMSYS, ICLR 2025, arXiv:2406.18665)
-* **Identity Consistency in Generation**:
-  * *ConsisID: Frequency-Aware Identity-Preserving Video Generation* (CVPR 2025 Highlight, arXiv:2411.17440)
-  * *StoryDiffusion: Consistent Self-Attention for Long-Range Image and Video Generation* (NeurIPS 2024 Spotlight, arXiv:2405.01434)
-* **Transactional Reliability**: *Saga Pattern & Durable Execution in Distributed Systems*
-
----
-
-## 路线图 (Roadmap)
-
-- [x] **v0.1.0-alpha**：CDMP 核心协议、Capability Matrix、Logical/Physical 编译器、Saga 自愈补偿引擎、高保真仿真环境。
-- [ ] **v0.2.0**：生产级 fal.ai、Replicate、ComfyUI WebSocket 双工驱动，Redis/S3 分布式 Latent 缓存。
-- [ ] **v0.3.0**：集成真实 ArcFace / CLIP-aesthetic 实时推理门禁，支持多轮对话编辑（Multi-turn Session Context）。
-- [ ] **v1.0.0**：企业级高可用分布式集群调度、动态 LoRA 热插拔、视频生成一致性工作流。
+| Dimension | OpenRouter / One-API | fal.ai / Replicate | ComfyUI Ecosystem | **Unimage (This Project)** |
+| :--- | :--- | :--- | :--- | :--- |
+| **Abstraction Level** | Model-Centric (Raw parameters) | Serverless Model Endpoints | Imperative Node Wiring | **Intent-Centric (Goal + SLA)** |
+| **Workflow Synthesis** | None (Single forward pass) | Static Chained Pipelines | Manual fragile wiring | **Dynamic DAG Compiler** |
+| **Consistency Guarantees** | None | Raw image upload | PuLID / IP-Adapter nodes | **Native Identity Anchors** |
+| **Failure Handling** | Full redraw retry (100% cost) | Queue task retry | Crashes on error | **Saga Transactional Inpaint Repair** |
+| **State Management** | Stateless (Pixel round-trip) | Ephemeral URLs | Local host memory only | **Distributed Latent & State Mesh** |
+| **Agent Readiness** | Low | Medium | Very Low (Too complex) | **Optimal (Designed for Agents)** |
 
 ---
 
-## 作者与致谢 (Author & Credits)
+## 📚 Academic Grounding & Literature
 
-* **Author**: Lolilin (<teawhat2000@gmail.com>)
+Unimage is built upon recent breakthroughs across multimodal reasoning, dynamic routing, and workflow synthesis:
+
+* **Workflow Generation with LLMs**: *ComfyGPT: A Self-Optimizing Multi-Agent System for Comprehensive ComfyUI Workflow Generation* ([arXiv:2503.17671](https://arxiv.org/abs/2503.17671))
+* **Model Dynamic Routing**: *RouteLLM: Learning to Route LLMs with Preference Data* ([arXiv:2406.18665](https://arxiv.org/abs/2406.18665), ICLR 2025)
+* **Identity-Preserving Synthesis**:
+  * *ConsisID: Frequency-Aware Identity-Preserving Video Generation* ([arXiv:2411.17440](https://arxiv.org/abs/2411.17440), CVPR 2025 Highlight)
+  * *StoryDiffusion: Consistent Self-Attention for Long-Range Image and Video Generation* ([arXiv:2405.01434](https://arxiv.org/abs/2405.01434), NeurIPS 2024 Spotlight)
+* **Distributed Reliability**: *Saga Pattern & Durable Execution in Distributed Systems*
+
+For complete mathematical definitions and design rationales, please consult the [Architecture Whitepaper](docs/ARCHITECTURE_SPEC.md).
 
 ---
 
-## 许可协议
+## 🗺️ Roadmap
 
-Apache License 2.0. 详见 [LICENSE](LICENSE)。
+- [x] **v0.1.0-alpha**: CDMP Protocol Specification, Capability Trait Matrix, Logical/Physical Compilers, Saga Compensator, High-Fidelity Simulation Engine.
+- [x] **v0.1.5**: Dual-Direction Compatibility (OpenAI Ingress Polyfill + Egress Adapters for OpenAI, Gemini, fal.ai, ComfyUI).
+- [ ] **v0.2.0**: Redis/S3 remote latent paging mesh, streaming WebSocket progress events.
+- [ ] **v0.3.0**: Native ArcFace and CLIP-aesthetic embedding gate workers.
+- [ ] **v1.0.0**: Distributed GPU cluster auto-scaler and text-to-video consistency compiler.
+
+---
+
+## 👤 Author
+
+* **Lolilin** - [GitHub](https://github.com/LoliLin) • [Email](mailto:teawhat2000@gmail.com)
+
+---
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
